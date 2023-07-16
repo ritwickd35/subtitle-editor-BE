@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 app.secret_key = "secret key"
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # specifies the maximum size of the file to be uploaded in bytes.
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # specifies the maximum size of the file to be uploaded in bytes.
 
 #  join this absolute path string to the ‘uploads’ string and assign it to the variable UPLOAD_FOLDER
 UPLOAD_FOLDER = os.getcwd() + '/uploads'
@@ -27,12 +27,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # print("upload folder is ", path, path+(app.config['UPLOAD_FOLDER']))
 
 #  set of all the allowed extensions for file upload
-ALLOWED_EXTENSIONS = ['mp4', 'vtt', 'srt']
+ALLOWED_EXTENSIONS = ['mp4', 'vtt']
 
 
 # check whether the file uploaded has the allowed extension
 def allowed_file(file_name):
-    return '.' in file_name and file_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in file_name and file_name.rsplit('.', 1)[1].casefold() in ALLOWED_EXTENSIONS
 
 
 def validate_webvtt_timestamp(timestamp):
@@ -64,13 +64,16 @@ def upload_file():
 
 
 @app.route('/display/<file_name>')
-def display_video(file_name):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], path=file_name, as_attachment=False)
+def display_file(file_name):
+    if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], file_name)):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], path=file_name, as_attachment=False)
+    else:
+        return {'status': 'failure', 'message': 'file not found'}, 404
 
 
-@app.route('/update-caption', methods=['POST'])
+@app.route('/update-caption', methods=['PUT'])
 def update_caption():
-    if request.method == 'POST':
+    if request.method == 'PUT':
         caption_data = request.json
         file_path = caption_data['fileName']
         caption_start = caption_data['captionStartTime']
@@ -87,6 +90,22 @@ def update_caption():
             return {'status': 'success', 'message': 'updated caption'}, 200
         else:
             return {'status': 'failure', 'message': 'allowed timestamp format is hh:mm:ss.ttt'}, 400
+
+
+@app.route('/create-subtitle', methods=['POST'])
+def create_subtitle_file():
+    if request.method == 'POST':
+        print("got request in create subtitle")
+        file_data = request.json
+        file_path = file_data['fileName']
+        f = None
+        try:
+            f = open(os.path.join(app.config['UPLOAD_FOLDER'], file_path + '.vtt'), "x")
+        except:
+            return {'status': 'failure', 'message': 'subtitle file already present'}, 400
+        finally:
+            f.write("WEBVTT\n\n")
+            return {'status': 'success', 'message': 'created new subtitle file'}, 200
 
 # if __name__ == '__main__':
 # 	app.run(debug=True)
