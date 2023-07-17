@@ -2,8 +2,8 @@
 
 This API provides endpoints for managing WebVTT subtitle files and captions. It allows users to upload video and subtitle files, insert captions, update captions, delete captions, and display subtitle files.
 
-Routes\
-1. Upload File\
+<h3>Routes</h3>
+1. Upload File
 
     Route: /save-file\
     Method: POST\
@@ -18,9 +18,9 @@ Routes\
             Response Body:\
                 {'status': 'failure', 'message': 'no file sent'} (if no file was sent)\
                 {'status': 'failure', 'message': 'no file selected for upload'} (if no file was selected)\
-                {'status': 'failure', 'message': 'allowed filetypes are .mp4, .vtt, .srt'} (if the file type is not allowed)\
+                {'status': 'failure', 'message': 'allowed filetypes are .mp4, .vtt, .srt'} (if the file type is not allowed)
 
-2. Display File\
+2. Display File
 
     Route: /display/<file_name>\
     Method: GET\
@@ -31,9 +31,9 @@ Routes\
         Success: HTTP 200 OK\
             The file is returned.\
         Failure: HTTP 404 Not Found\
-            Response Body: {'status': 'failure', 'message': 'file not found'}\
+            Response Body: {'status': 'failure', 'message': 'file not found'}
 
-3. Insert Caption\
+3. Insert Caption
 
     Route: /insert-caption\
     Method: PUT\
@@ -50,9 +50,9 @@ Routes\
         Failure: HTTP 400 Bad Request\
             Response Body:\
                 {'status': 'failure', 'message': 'no captions sent'} (if no captions were sent)\
-                {'status': 'failure', 'message': 'allowed timestamp format is hh:mm:ss.ttt'} (if the timestamp format is incorrect)\
+                {'status': 'failure', 'message': 'allowed timestamp format is hh:mm:ss.ttt'} (if the timestamp format is incorrect)
 
-4. Create Subtitle File\
+4. Create Subtitle File
 
     Route: /create-subtitle\
     Method: POST\
@@ -64,9 +64,9 @@ Routes\
         Success: HTTP 200 OK\
             Response Body: {'status': 'success', 'message': 'created new subtitle file'}\
         Failure: HTTP 400 Bad Request\
-            Response Body: {'status': 'failure', 'message': 'subtitle file already present'}\
+            Response Body: {'status': 'failure', 'message': 'subtitle file already present'}
 
-5. Delete Caption\
+5. Delete Caption
 
     Route: /delete-caption\
     Method: POST\
@@ -83,9 +83,9 @@ Routes\
         Failure: HTTP 400 Bad Request\
             Response Body:\
                 {'status': 'failure', 'message': 'could not delete subtitle'} (if the caption deletion fails)\
-                {'status': 'failure', 'message': 'could not find subtitle to delete'} (if the specified caption is not found)\
+                {'status': 'failure', 'message': 'could not find subtitle to delete'} (if the specified caption is not found)
 
-6. Update Caption\
+6. Update Caption
 
     Route: /update-caption\
     Method: POST\
