@@ -1,7 +1,7 @@
 from distutils.log import debug
 import os
 from fileinput import filename
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 from flask import *
 from webvtt import WebVTT, Caption
@@ -55,9 +55,7 @@ def upload_file():
             return {'status': 'failure', 'message': 'no file selected for upload'}, 400
         if file and allowed_file(file.filename):
             file_name = secure_filename(file.filename)
-            print(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
-            print('file uploaded successfully')
             return {'status': 'success', 'message': 'file uploaded'}, 200
         else:
             return {'status': 'failure', 'message': 'allowed filetypes are .mp4, .vtt, .srt'}, 400
@@ -71,7 +69,8 @@ def display_file(file_name):
         return {'status': 'failure', 'message': 'file not found'}, 404
 
 
-@app.route('/update-caption', methods=['PUT'])
+@cross_origin()
+@app.route('/insert-caption', methods=['PUT'])
 def update_caption():
     if request.method == 'PUT':
         caption_data = request.json
@@ -101,11 +100,65 @@ def create_subtitle_file():
         f = None
         try:
             f = open(os.path.join(app.config['UPLOAD_FOLDER'], file_path + '.vtt'), "x")
-        except:
+        except Exception as e:
             return {'status': 'failure', 'message': 'subtitle file already present'}, 400
         finally:
             f.write("WEBVTT\n\n")
             return {'status': 'success', 'message': 'created new subtitle file'}, 200
 
-# if __name__ == '__main__':
-# 	app.run(debug=True)
+
+@app.route('/delete-caption', methods=['POST'])
+def delete_subtitle():
+    if request.method == 'POST':
+        print("got request in delete subtitle")
+        caption_data = request.json
+        file_path = caption_data['fileName']
+        start_time = caption_data['startTime']
+        end_time = caption_data['endTime']
+        caption_content = caption_data['content']
+        vtt = WebVTT.read(os.path.join(app.config['UPLOAD_FOLDER'], file_path + '.vtt'))
+        del_index = -1
+        index = 0
+        for caption in vtt:
+            if caption.start == start_time and caption.end == end_time and caption.text == caption_content:
+                del_index = index
+            index += 1
+
+        print("indedx", del_index)
+        if del_index != -1:
+            try:
+                del vtt.captions[del_index]
+                vtt.save()
+                return {'status': 'success', 'message': 'selected subtitle deleted'}, 200
+            except Exception as e:
+                return {'status': 'failure', 'message': 'could not delete subtitle'}, 400
+        return {'status': 'failure', 'message': 'could not find subtitle to delete'}, 400
+
+
+@app.route('/update-caption', methods=['POST'])
+def update_subtitle():
+    if request.method == 'POST':
+        print("got request in delete subtitle")
+        caption_data = request.json
+        file_path = caption_data['fileName']
+        start_time = caption_data['startTime']
+        end_time = caption_data['endTime']
+        caption_content = caption_data['content']
+        vtt = WebVTT.read(os.path.join(app.config['UPLOAD_FOLDER'], file_path + '.vtt'))
+        update_index = -1
+        index = 0
+        for caption in vtt:
+            if caption.start == start_time and caption.end == end_time and caption.text == caption_content:
+                update_index = index
+            index += 1
+
+        print("indedx", update_index)
+        if update_index != -1:
+            try:
+                vtt[update_index].text = caption_content
+                vtt.save()
+                return {'status': 'success', 'message': 'selected subtitle updated'}, 200
+            except Exception as e:
+                return {'status': 'failure', 'message': 'could not update subtitle'}, 400
+        return {'status': 'failure',
+                'message': 'could not find subtitle to update'}, 400  # if __name__ == '__main__':  # 	app.run(debug=True)
