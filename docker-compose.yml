@@ -1,0 +1,13 @@
+version: '1'
+
+services:
+
+  subtitle_be:
+    container_name: subtitle_be
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - '/uploads'
+    ports:
+      - '5000:5000'
